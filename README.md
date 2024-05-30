@@ -8,14 +8,14 @@ The toolkit contains the following functions:
 * Generating count matrix
 
 # Preperation
-Before using hibc, make sure you have installed STAR, featureCounts.
+Before using hellobc, make sure you have installed STAR, featureCounts.
 ```
 # install STAR
 # install featureCounts
 ```
 
 # Installation
-We recommend installing hibc in a conda environment.
+We recommend installing hellobc in a conda environment.
 ```
 conda create -n hellobc python=3.8
 conda activate hellobc
@@ -27,9 +27,9 @@ pip install hellobc
 # Get started
 In order to run the whole pipeline of upstream analysis, you can create a new .py file with the following code:
 ```
-from hellobc.pipline.runpip import hellobc_pipeline
+from hellobc.pipline.runpip import xu_pipeline
 
-workst = "/mnt/sda/xxt/workst/sevci/20240517"                     # output directory
+workst = "/mnt/sda/xxt/workst/sevci/20240530"                     # output directory
 sampid = "ZT-136-ZT-136-1"                                        # sample name
 fq1 = "/mnt/sda/xxt/data/seqdata/biozt/ZT-136-ZT-136-1/ZT-136-ZT-136-1_R1.fastq.gz"
 fq2 = "/mnt/sda/xxt/data/seqdata/biozt/ZT-136-ZT-136-1/ZT-136-ZT-136-1_R2.fastq.gz"
@@ -72,5 +72,5 @@ There are two parameters that can significantly affect the final number of cells
 * These 2 parameters can be setted when calling the 'hellobc_pipeline' function:
 ```
 # For example, here we set the min_umis=100, max_adj_pvalue=0.01
-hellobc_pipeline(workst, sampid, fq1, fq2, bcpat, gtf_dir, star_index_dir, min_umis=100, max_adj_pvalue=0.01)
+xu_pipeline(workst, sampid, fq1, fq2, bcpat, gtf_dir, star_index_dir, min_umis=100, max_adj_pvalue=0.01)
 ```
