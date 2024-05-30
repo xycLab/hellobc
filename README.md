@@ -27,7 +27,7 @@ pip install hellobc
 # Get started
 In order to run the whole pipeline of upstream analysis, you can create a new .py file with the following code:
 ```
-from hibc.pipline.runpip import hellobc_pipeline
+from hellobc.pipline.runpip import hellobc_pipeline
 
 workst = "/mnt/sda/xxt/workst/sevci/20240517"                     # output directory
 sampid = "ZT-136-ZT-136-1"                                        # sample name
