@@ -480,7 +480,7 @@ MIN_UMI_FRAC_OF_MEDIAN = 0.01
 MIN_UMIS = 500
 MAX_ADJ_PVALUE = 0.01                                   # p-value threshold
 NUM_SIMS = 10000
-MAX_CELL = 5000
+MAX_CELL = 30000
 
 
 def get_empty_drops_range(num_probe_bcs: int = None):
