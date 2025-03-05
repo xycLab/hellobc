@@ -2,6 +2,7 @@ import numpy as np
 import numpy.matlib as npm
 import pandas as pd
 import scipy
+from scipy import io
 import scipy.special
 import scipy.stats
 from typing import NamedTuple
@@ -45,7 +46,7 @@ class countMatrix(object):
 
         barcodes = pd.read_csv(f"{f_mtx}/barcodes.tsv", delimiter='\t', header=None, usecols=[0]).values.squeeze()
         features = pd.read_csv(f"{f_mtx}/features.tsv", delimiter='\t', header=None, usecols=[0, 1], names=['gene_id', 'gene_name'])
-        matrix_mtx = scipy.io.mmread(f"{f_mtx}/matrix.mtx")
+        matrix_mtx = io.mmread(f"{f_mtx}/matrix.mtx")
 
         matrix = countMatrix(bcs=barcodes, features=features, mtx=matrix_mtx)
         matrix.into_csc()
@@ -479,6 +480,7 @@ MIN_UMI_FRAC_OF_MEDIAN = 0.01
 MIN_UMIS = 500
 MAX_ADJ_PVALUE = 0.01                                   # p-value threshold
 NUM_SIMS = 10000
+MAX_CELL = 5000
 
 
 def get_empty_drops_range(num_probe_bcs: int = None):
@@ -834,8 +836,15 @@ def find_nonambient_barcodes(
         is_nonambient=is_nonambient,
     )
 
+def cut_by_umi(umis_per_bc, min_umis=MIN_UMIS, max_cell=MAX_CELL):
+   
+    indices = np.nonzero(umis_per_bc > MIN_UMIS)[0]
+    if len(indices)>MAX_CELL:
+        indices = np.argpartition(-umis_per_bc, MAX_CELL-1)[:MAX_CELL]
+    return indices
 
-def emptyDrops_drop_calling(raw_mtx:countMatrix, init_method:str='ordmag', min_umis=MIN_UMIS, max_adj_pvalue=MAX_ADJ_PVALUE):
+
+def emptyDrops_drop_calling(raw_mtx:countMatrix, init_method:str='ordmag', min_umis=MIN_UMIS, max_adj_pvalue=MAX_ADJ_PVALUE, max_cell=MAX_CELL):
 
     if init_method == 'ordmag':
         top_bc_idx, metrics = emptyDrops_init_calling(raw_mtx=raw_mtx)
@@ -846,6 +855,10 @@ def emptyDrops_drop_calling(raw_mtx:countMatrix, init_method:str='ordmag', min_u
     nonambi_calling_res = find_nonambient_barcodes(matrix=raw_mtx, orig_cell_bcs=raw_mtx.bcs[top_bc_idx], emptydrops_minimum_umis=min_umis, max_adj_pvalue=max_adj_pvalue)
 
     nonambi_bcs = [bc for bc, non_ambi in zip(nonambi_calling_res.eval_bcs, nonambi_calling_res.is_nonambient) if non_ambi]
+
+    if max_cell > 0 and (len(top_bc_idx)+len(nonambi_bcs)) > max_cell:
+        top_bc_idx = cut_by_umi(raw_mtx.counts_per_bc, min_umis, max_cell)
+        nonambi_bcs = []
 
     return top_bc_idx, nonambi_bcs
 
