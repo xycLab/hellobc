@@ -838,9 +838,11 @@ def find_nonambient_barcodes(
 
 def cut_by_umi(umis_per_bc, min_umis=MIN_UMIS, max_cell=MAX_CELL):
    
-    indices = np.nonzero(umis_per_bc > MIN_UMIS)[0]
-    if len(indices)>MAX_CELL:
-        indices = np.argpartition(-umis_per_bc, MAX_CELL-1)[:MAX_CELL]
+    indices = np.nonzero(umis_per_bc > min_umis)[0]  # 细胞数大于3w，输出umi大于500的部分（不管细胞数）
+    # if len(indices)>MAX_CELL:
+    #     indices = np.argpartition(-umis_per_bc, MAX_CELL-1)[:MAX_CELL]
+    if len(indices) == 0:   # umi都不大于500，输出提示, 并终止代码运行
+        raise ValueError(f"No barcodes with UMIs greater than {min_umis}. Plsease check the input data.")
     return indices
 
 
@@ -854,9 +856,13 @@ def emptyDrops_drop_calling(raw_mtx:countMatrix, init_method:str='ordmag', min_u
         raise ValueError("init_method must be one of 'ordmag', 'knee'")
     nonambi_calling_res = find_nonambient_barcodes(matrix=raw_mtx, orig_cell_bcs=raw_mtx.bcs[top_bc_idx], emptydrops_minimum_umis=min_umis, max_adj_pvalue=max_adj_pvalue)
 
-    nonambi_bcs = [bc for bc, non_ambi in zip(nonambi_calling_res.eval_bcs, nonambi_calling_res.is_nonambient) if non_ambi]
-
+    if nonambi_calling_res:
+        nonambi_bcs = [bc for bc, non_ambi in zip(nonambi_calling_res.eval_bcs, nonambi_calling_res.is_nonambient) if non_ambi]
+    else:
+        nonambi_bcs = []
+    
     if max_cell > 0 and (len(top_bc_idx)+len(nonambi_bcs)) > max_cell:
+        print(f"Number of barcodes exceeds {max_cell}, cutting by UMI.")
         top_bc_idx = cut_by_umi(raw_mtx.counts_per_bc, min_umis, max_cell)
         nonambi_bcs = []
 
